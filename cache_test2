@@ -1,0 +1,77 @@
+
+#include <iostream>
+#include <emmintrin.h>
+#include <stdio.h>
+#include <math.h>
+#include <Windows.h>
+#include <time.h>
+#include <stdlib.h>
+#include <intrin.h>
+
+#define NPAD 7
+
+struct l
+{
+	struct l * n;
+	long long pad[NPAD];
+};
+
+int main()
+{
+	size_t s = sizeof(struct l);
+	printf("element size : %d bytes\n", s);
+
+	for (int i = 2; i <= 16; i++)
+	{
+		for (int j = 2; j <= 128; j++)
+		{
+			size_t ts = i * s + ( ( j - 1 ) * s) * (i - 1);
+			void* vp = malloc(ts);
+			memset(vp, 0, ts);
+			struct l * p = (struct l*)vp;
+			//printf("%d num - %d dis", i, j);
+
+
+			struct l * pn = NULL;
+			for (int k = 0; k < i; k++)
+			{
+				if (pn)
+				{
+					pn->n = p + k * j;
+					pn = p + k * j;
+				}
+				else
+				{
+					pn = p + k * j;
+				}
+			}
+			pn->n = p;
+
+			pn = p;
+			int lc = 10000000;
+			unsigned __int64 tis;
+			unsigned __int64 te;
+			tis = __rdtsc();
+			while (pn && lc--)
+			{
+				pn = pn->n;
+			}
+			te = __rdtsc();
+			if ((te - tis) > 128610203)
+			{
+				printf("%d num - %d dis", i, j);
+				printf_s(" %I64d - %I64d = %I64d ticks ", te, tis, te - tis);
+				printf("\n");
+			}
+
+			if (vp)
+			{
+				free(vp);
+				vp = NULL;
+			}
+			//printf("\n");
+		}
+	}
+}
+
+
